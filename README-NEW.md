@@ -14,3 +14,8 @@ docker run -d \
   -v /srv/ai-filebrowser/config:/config \
   filebrowser:latest
 ```
+
+账户：
+
+- 系统管理员 sysadmin Cloud@s1
+- 普通用户 ftp ftp
