@@ -1,0 +1,34 @@
+FROM alpine:3.23
+
+ARG FB_PASSWORD_HASH
+
+ENV UID=1000
+ENV GID=1000
+ENV FB_USERNAME=sysadmin
+ENV FB_PASSWORD=${FB_PASSWORD_HASH}
+
+RUN apk update && \
+    apk --no-cache add ca-certificates mailcap tini-static && \
+    wget -O /JSON.sh https://raw.githubusercontent.com/dominictarr/JSON.sh/0d5e5c77365f63809bf6e77ef44a1f34b0e05840/JSON.sh
+
+RUN addgroup -g $GID user && \
+    adduser -D -u $UID -G user user
+
+COPY --chown=user:user filebrowser /bin/filebrowser
+COPY --chown=user:user docker/common/ /
+COPY --chown=user:user docker/alpine/ /
+
+RUN mkdir -p /config /database /srv && \
+    chown -R user:user /config /database /srv && \
+    chmod +x /healthcheck.sh && \
+    ln -s /sbin/tini-static /bin/tini
+
+HEALTHCHECK --start-period=2s --interval=5s --timeout=3s CMD /healthcheck.sh
+
+USER user
+
+VOLUME /srv /config /database
+
+EXPOSE 80
+
+ENTRYPOINT [ "tini", "--", "/init.sh" ]
