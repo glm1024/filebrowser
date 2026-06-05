@@ -12,6 +12,7 @@ const noAuth: boolean = window.FileBrowser.NoAuth;
 const authMethod = window.FileBrowser.AuthMethod;
 const logoutPage: string = window.FileBrowser.LogoutPage;
 const loginPage: boolean = window.FileBrowser.LoginPage;
+const guestUsername: string = window.FileBrowser.GuestUsername || "ftp";
 const theme: UserTheme = window.FileBrowser.Theme;
 const enableThumbs: boolean = window.FileBrowser.EnableThumbs;
 const resizePreview: boolean = window.FileBrowser.ResizePreview;
@@ -35,6 +36,7 @@ export {
   authMethod,
   logoutPage,
   loginPage,
+  guestUsername,
   theme,
   enableThumbs,
   resizePreview,

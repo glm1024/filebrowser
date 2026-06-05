@@ -12,6 +12,7 @@ import (
 
 const DefaultUsersHomeBasePath = "/users"
 const DefaultLogoutPage = "/login"
+const DefaultGuestUsername = "ftp"
 const DefaultMinimumPasswordLength = 12
 const DefaultFileMode = 0640
 const DefaultDirMode = 0750

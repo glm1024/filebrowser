@@ -113,6 +113,8 @@
   "login": {
     "createAnAccount": "Create an account",
     "loginInstead": "Already have an account",
+    "adminLoginHint": "Administrator access requires a password.",
+    "adminSubmit": "Administrator Login",
     "password": "Password",
     "passwordConfirm": "Password Confirmation",
     "passwordsDontMatch": "Passwords don't match",
@@ -283,6 +285,8 @@
   "sidebar": {
     "help": "Help",
     "hugoNew": "Hugo New",
+    "adminLogin": "Administrator Login",
+    "guest": "Guest",
     "login": "Login",
     "logout": "Logout",
     "myFiles": "My files",

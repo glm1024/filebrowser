@@ -1,5 +1,6 @@
 interface IUser {
   id: number;
+  guest?: boolean;
   username: string;
   password: string;
   scope: string;

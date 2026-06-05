@@ -15,7 +15,7 @@ import { useAuthStore } from "@/stores/auth";
 import { baseURL, name } from "@/utils/constants";
 import i18n from "@/i18n";
 import { recaptcha, loginPage } from "@/utils/constants";
-import { login, validateLogin } from "@/utils/auth";
+import { guestLogin, login, validateLogin } from "@/utils/auth";
 
 const titles = {
   Login: "sidebar.login",
@@ -150,9 +150,22 @@ const routes = [
   },
 ];
 
-async function initAuth() {
+function isAdminLogin(to: RouteLocation) {
+  return to.path.endsWith("/login") && to.query.admin === "1";
+}
+
+async function initAuth(to: RouteLocation) {
   if (loginPage) {
-    await validateLogin();
+    try {
+      await validateLogin();
+    } catch (error) {
+      console.error(error);
+    }
+
+    const authStore = useAuthStore();
+    if (!authStore.isLoggedIn && !isAdminLogin(to)) {
+      await guestLogin();
+    }
   } else {
     await login("", "", "");
   }
@@ -186,13 +199,17 @@ router.beforeResolve(async (to, from, next) => {
   // this will only be null on first route
   if (from.name == null) {
     try {
-      await initAuth();
+      await initAuth(to);
     } catch (error) {
       console.error(error);
     }
   }
 
-  if (to.path.endsWith("/login") && authStore.isLoggedIn) {
+  if (
+    to.path.endsWith("/login") &&
+    authStore.isLoggedIn &&
+    (!isAdminLogin(to) || authStore.user?.perm.admin)
+  ) {
     next({ path: "/files/" });
     return;
   }

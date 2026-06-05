@@ -7,6 +7,7 @@ rice-box.go
 /filebrowser.exe
 /dist
 .venv
+.local-dev/
 
 .DS_Store
 node_modules

@@ -2,7 +2,13 @@ import { useAuthStore } from "@/stores/auth";
 import router from "@/router";
 import type { JwtPayload } from "jwt-decode";
 import { jwtDecode } from "jwt-decode";
-import { authMethod, baseURL, noAuth, logoutPage } from "./constants";
+import {
+  authMethod,
+  baseURL,
+  noAuth,
+  logoutPage,
+  loginPage,
+} from "./constants";
 import { StatusError } from "@/api/utils";
 import { setSafeTimeout } from "@/api/utils";
 
@@ -44,6 +50,7 @@ export async function validateLogin() {
     }
   } catch (error) {
     console.warn("Invalid JWT token in storage");
+    clearSession();
     throw error;
   }
 }
@@ -61,6 +68,23 @@ export async function login(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+  });
+
+  const body = await res.text();
+
+  if (res.status === 200) {
+    parseToken(body);
+  } else {
+    throw new StatusError(
+      body || `${res.status} ${res.statusText}`,
+      res.status
+    );
+  }
+}
+
+export async function guestLogin() {
+  const res = await fetch(`${baseURL}/api/guest-login`, {
+    method: "POST",
   });
 
   const body = await res.text();
@@ -115,17 +139,33 @@ export async function signup(username: string, password: string) {
   }
 }
 
-export function logout(reason?: string) {
+export function clearSession() {
   document.cookie = "auth=; Max-Age=0; Path=/; SameSite=Strict;";
 
   const authStore = useAuthStore();
+  if (authStore.logoutTimer) {
+    clearTimeout(authStore.logoutTimer);
+  }
   authStore.clearUser();
 
-  localStorage.setItem("jwt", "");
+  localStorage.removeItem("jwt");
+}
+
+export async function logout(reason?: string) {
+  clearSession();
+
   if (noAuth) {
     window.location.reload();
   } else if (logoutPage !== "/login") {
     document.location.href = `${logoutPage}`;
+  } else if (loginPage) {
+    try {
+      await guestLogin();
+      router.push({ path: "/files/" });
+    } catch (error) {
+      console.warn("Unable to restore guest session after logout", error);
+      router.push({ path: "/login" });
+    }
   } else {
     if (typeof reason === "string" && reason.trim() !== "") {
       router.push({

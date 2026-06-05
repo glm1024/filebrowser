@@ -54,6 +54,16 @@
   text-transform: none;
 }
 
+#login .login-context {
+  color: var(--textPrimary);
+  cursor: default;
+  font-weight: 400;
+  line-height: 1.4;
+  margin: -0.4rem 0 0.7rem;
+  text-align: center;
+  text-transform: none;
+}
+
 @keyframes opac {
   0% {
     opacity: 0;

@@ -42,6 +42,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		"AuthMethod":            d.settings.AuthMethod,
 		"LogoutPage":            d.settings.LogoutPage,
 		"LoginPage":             auther.LoginPage(),
+		"GuestUsername":         settings.DefaultGuestUsername,
 		"CSS":                   false,
 		"ReCaptcha":             false,
 		"Theme":                 d.settings.Branding.Theme,

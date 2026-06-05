@@ -3,6 +3,9 @@
     <form @submit="submit">
       <img :src="logoURL" alt="File Browser" />
       <h1>{{ name }}</h1>
+      <p v-if="adminMode" class="login-context">
+        {{ t("login.adminLoginHint") }}
+      </p>
       <p v-if="reason != null" class="logout-message">
         {{ t(`login.logout_reasons.${reason}`) }}
       </p>
@@ -34,10 +37,16 @@
       <input
         class="button button--block"
         type="submit"
-        :value="createMode ? t('login.signup') : t('login.submit')"
+        :value="
+          createMode
+            ? t('login.signup')
+            : adminMode
+              ? t('login.adminSubmit')
+              : t('login.submit')
+        "
       />
 
-      <p @click="toggleMode" v-if="signup">
+      <p @click="toggleMode" v-if="signup && !adminMode">
         {{ createMode ? t("login.loginInstead") : t("login.createAnAccount") }}
       </p>
     </form>
@@ -68,12 +77,17 @@ const passwordConfirm = ref<string>("");
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n({});
+const adminMode = route.query.admin === "1";
 // Define functions
 const toggleMode = () => (createMode.value = !createMode.value);
 
 const $showError = inject<IToastError>("$showError")!;
 
 const reason = route.query["logout-reason"] ?? null;
+
+if (adminMode) {
+  username.value = "sysadmin";
+}
 
 const submit = async (event: Event) => {
   event.preventDefault();

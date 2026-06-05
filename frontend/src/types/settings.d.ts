@@ -2,6 +2,7 @@ interface ISettings {
   signup: boolean;
   createUserDir: boolean;
   hideLoginButton: boolean;
+  guestUsername?: string;
   minimumPasswordLength: number;
   userHomeBasePath: string;
   defaults: SettingsDefaults;

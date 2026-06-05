@@ -2,7 +2,11 @@
   <div v-show="active" @click="closeHovers" class="overlay"></div>
   <nav :class="{ active }">
     <template v-if="isLoggedIn">
-      <button @click="toAccountSettings" class="action">
+      <button v-if="isGuest" class="action" type="button">
+        <i class="material-icons">person</i>
+        <span>{{ $t("sidebar.guest") }}</span>
+      </button>
+      <button v-else @click="toAccountSettings" class="action">
         <i class="material-icons">person</i>
         <span>{{ user.username }}</span>
       </button>
@@ -49,6 +53,17 @@
           <span>{{ $t("sidebar.settings") }}</span>
         </button>
       </div>
+      <button
+        v-if="isGuest"
+        @click="toAdminLogin"
+        class="action"
+        id="admin-login"
+        :aria-label="$t('sidebar.adminLogin')"
+        :title="$t('sidebar.adminLogin')"
+      >
+        <i class="material-icons">admin_panel_settings</i>
+        <span>{{ $t("sidebar.adminLogin") }}</span>
+      </button>
       <button
         v-if="canLogout"
         @click="logout"
@@ -131,6 +146,7 @@ import {
   noAuth,
   logoutPage,
   loginPage,
+  guestUsername,
 } from "@/utils/constants";
 import { files as api } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
@@ -160,7 +176,12 @@ export default {
     version: () => version,
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
-    canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
+    isGuest() {
+      return this.user?.guest || this.user?.username === guestUsername;
+    },
+    canLogout() {
+      return !noAuth && !this.isGuest && (loginPage || logoutPage !== "/login");
+    },
   },
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
@@ -198,6 +219,11 @@ export default {
     },
     toGlobalSettings() {
       this.$router.push({ path: "/settings/global" });
+      this.closeHovers();
+    },
+    toAdminLogin() {
+      auth.clearSession();
+      this.$router.push({ path: "/login", query: { admin: "1" } });
       this.closeHovers();
     },
     help() {

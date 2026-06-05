@@ -24,6 +24,7 @@ const (
 
 type userInfo struct {
 	ID                    uint              `json:"id"`
+	Guest                 bool              `json:"guest"`
 	Locale                string            `json:"locale"`
 	ViewMode              users.ViewMode    `json:"viewMode"`
 	SingleClick           bool              `json:"singleClick"`
@@ -104,6 +105,7 @@ func withUser(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
+		d.userIsGuest = tk.User.Guest
 		return fn(w, r, d)
 	}
 }
@@ -133,7 +135,26 @@ func loginHandler(tokenExpireTime time.Duration) handleFunc {
 			return http.StatusInternalServerError, err
 		}
 
-		return printToken(w, r, d, user, tokenExpireTime)
+		return printToken(w, r, d, user, tokenExpireTime, false)
+	}
+}
+
+func guestLoginHandler(tokenExpireTime time.Duration) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		if r.Method != http.MethodPost {
+			return http.StatusMethodNotAllowed, nil
+		}
+
+		if d.settings.AuthMethod == fbAuth.MethodNoAuth {
+			return http.StatusMethodNotAllowed, nil
+		}
+
+		user, err := d.store.Users.Get(d.server.Root, settings.DefaultGuestUsername)
+		if err != nil {
+			return errToStatus(err), err
+		}
+
+		return printToken(w, r, d, user, tokenExpireTime, true)
 	}
 }
 
@@ -208,14 +229,15 @@ var signupHandler = func(_ http.ResponseWriter, r *http.Request, d *data) (int, 
 func renewHandler(tokenExpireTime time.Duration) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		w.Header().Set("X-Renew-Token", "false")
-		return printToken(w, r, d, d.user, tokenExpireTime)
+		return printToken(w, r, d, d.user, tokenExpireTime, d.userIsGuest)
 	})
 }
 
-func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User, tokenExpirationTime time.Duration) (int, error) {
+func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User, tokenExpirationTime time.Duration, guest bool) (int, error) {
 	claims := &authToken{
 		User: userInfo{
 			ID:                    user.ID,
+			Guest:                 guest,
 			Locale:                user.Locale,
 			ViewMode:              user.ViewMode,
 			SingleClick:           user.SingleClick,

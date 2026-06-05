@@ -85,7 +85,7 @@ func init() {
 	// Runtime flags for the root command
 	flags := rootCmd.Flags()
 	flags.Bool("noauth", false, "use the noauth auther when using quick setup")
-	flags.String("username", "admin", "username for the first user when using quick setup")
+	flags.String("username", "sysadmin", "username for the first user when using quick setup")
 	flags.String("password", "", "hashed password for the first user when using quick setup")
 	flags.Uint32("socketPerm", 0666, "unix socket file permissions")
 	flags.String("cacheDir", "", "file cache directory (disabled if empty)")
@@ -489,14 +489,36 @@ func quickSetup(v *viper.Viper, s *storage.Storage) error {
 		log.Fatal("username and password cannot be empty during quick setup")
 	}
 
-	user := &users.User{
+	adminUser := &users.User{
 		Username:     username,
 		Password:     password,
 		LockPassword: false,
 	}
 
-	set.Defaults.Apply(user)
-	user.Perm.Admin = true
+	set.Defaults.Apply(adminUser)
+	adminUser.Perm.Admin = true
 
-	return s.Users.Save(user)
+	if err := s.Users.Save(adminUser); err != nil {
+		return err
+	}
+
+	if username == settings.DefaultGuestUsername {
+		return nil
+	}
+
+	guestPassword, err := users.ValidateAndHashPwd(settings.DefaultGuestUsername, set.MinimumPasswordLength)
+	if err != nil {
+		return err
+	}
+
+	guestUser := &users.User{
+		Username:     settings.DefaultGuestUsername,
+		Password:     guestPassword,
+		LockPassword: true,
+	}
+
+	set.Defaults.Apply(guestUser)
+
+	log.Printf("Guest user '%s' initialized for anonymous access\n", settings.DefaultGuestUsername)
+	return s.Users.Save(guestUser)
 }

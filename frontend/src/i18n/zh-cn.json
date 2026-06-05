@@ -113,6 +113,8 @@
   "login": {
     "createAnAccount": "创建用户",
     "loginInstead": "已有用户登录",
+    "adminLoginHint": "管理员访问需要输入密码。",
+    "adminSubmit": "管理员登录",
     "password": "密码",
     "passwordConfirm": "确认密码",
     "passwordsDontMatch": "密码不一致",
@@ -283,6 +285,8 @@
   "sidebar": {
     "help": "帮助",
     "hugoNew": "Hugo 新建",
+    "adminLogin": "管理员登录",
+    "guest": "访客",
     "login": "登录",
     "logout": "登出",
     "myFiles": "我的文件",
